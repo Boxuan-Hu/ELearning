@@ -16,7 +16,7 @@ export const register = async (req, res) => {
     }
     let userExist = await User.findOne({ email }).exec();
     if (userExist) {
-      return status.status(400).send("Email is taken");
+      return res.status(400).send("Email is taken");
     }
 
     // hash password
