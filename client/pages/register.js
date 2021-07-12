@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { SyncOutlined } from "@ant-design/icons";
+import Link from "next/link";
 
 const register = () => {
   const [name, setName] = useState("");
@@ -13,14 +14,11 @@ const register = () => {
     // console.table({ name, email, password });
     try {
       setLoading(true);
-      const { data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_API}/register`,
-        {
-          name,
-          email,
-          password,
-        }
-      );
+      const { data } = await axios.post(`/api/register`, {
+        name,
+        email,
+        password,
+      });
       toast.success("Registration successful. Please Login");
       setLoading(false);
     } catch (err) {
@@ -67,6 +65,12 @@ const register = () => {
             </button>
           </div>
         </form>
+        <p className="text-center p-3">
+          Already Register?{" "}
+          <Link href="/login">
+            <a>Login</a>
+          </Link>
+        </p>
       </div>
     </div>
   );
