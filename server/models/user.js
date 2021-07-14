@@ -29,10 +29,15 @@ const userSchema = new Schema(
       default: ["Subscriber"],
       enum: ["Subscriber", "Instructor", "Admin"],
     },
+    passwordResetCode: {
+      data: String,
+      default: "",
+    },
     stripe_account_id: "",
     stripe_seller: {},
     stripeSession: {},
   },
+
   { timestamps: true }
 );
 

@@ -58,7 +58,7 @@ const Login = () => {
             placeholder="Enter email"
           />
           <input
-            type="text"
+            type="password"
             className="form-control mb-4 p-4"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -75,10 +75,15 @@ const Login = () => {
             </button>
           </div>
         </form>
-        <p className="text-center p-3">
+        <p className="text-center pt-3">
           Not yet register?{" "}
           <Link href="/register">
             <a>Register</a>
+          </Link>
+        </p>
+        <p className="text-center ">
+          <Link href="/forgot-password">
+            <a className="text-danger">Forgot password?</a>
           </Link>
         </p>
       </div>

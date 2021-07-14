@@ -1,6 +1,17 @@
 import User from "../models/user";
 import { hashPassword, comparePassword } from "../utils/auth";
 import jwt from "jsonwebtoken";
+import AWS from "aws-sdk";
+import { nanoid } from "nanoid";
+
+const awsConfig = {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
+  apiVersion: process.env.AWS_API_VERSION,
+};
+
+const SES = new AWS.SES(awsConfig);
 
 export const register = async (req, res) => {
   try {
@@ -76,8 +87,109 @@ export const currentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password").exec();
     console.log("Current user", user);
-    return res.json(user);
+    return res.json({ ok: true });
   } catch (err) {
     console.log(err);
+  }
+};
+
+export const sendTestEmail = async (req, res) => {
+  // console.log("Emial");
+  // res.json({ ok: true });
+  const params = {
+    Source: process.env.EMAIL_FROM,
+    Destination: { ToAddresses: ["francis.hbx@gmail.com"] },
+
+    ReplyToAddresses: [process.env.EMAIL_FROM],
+    Message: {
+      Body: {
+        Html: {
+          Charset: "UTF-8",
+          Data: `
+        <html><h1>Reset password link</h1>
+        <p>Please use the following link to reset you password</p> </html>
+        `,
+        },
+      },
+
+      Subject: {
+        Charset: "UTF-8",
+        Data: "Password reset link",
+      },
+    },
+  };
+
+  const emailSent = SES.sendEmail(params).promise();
+  emailSent
+    .then((data) => {
+      console.log(data);
+      res.json({ ok: true });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const shortCode = nanoid(6).toUpperCase();
+    const user = await User.findOneAndUpdate(
+      { email },
+      { passwordResetCode: shortCode }
+    );
+    if (!user) return res.status(400).send("User not found");
+
+    // prepare for eamil
+    const params = {
+      Source: process.env.EMAIL_FROM,
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `
+          <html><h1>Reset password link</h1>
+          <p>Please use the following link to reset you password</p> 
+          <h2 style="color:red">${shortCode}</h2>
+          <i>edemy.com</i>  </html>
+          `,
+          },
+        },
+
+        Subject: {
+          Charset: "UTF-8",
+          Data: "Password reset link",
+        },
+      },
+    };
+    // console.log(email);
+    const emailSent = SES.sendEmail(params).promise();
+    emailSent
+      .then((data) => {
+        console.log(data);
+        res.json({ ok: true });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    // console.table({ email, code, newPassword });
+    const hashedPassword = await hashPassword(newPassword);
+    const user = User.findOneAndUpdate(
+      { email, passwordResetCode: code },
+      { password: hashedPassword, passwordResetCode: "" }
+    ).exec();
+    res.json({ ok: true });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send("Error, try again.");
   }
 };
