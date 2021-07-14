@@ -12,7 +12,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
-const { Item, SubMenu } = Menu; //Menu.Item
+const { Item, SubMenu, ItemGroup } = Menu; //Menu.Item
 
 const TopNav = () => {
   const [current, setCurrent] = useState("");
@@ -74,9 +74,15 @@ const TopNav = () => {
             title={user && user.name}
             className="float-end"
           >
-            <Item onClick={logout} className="float-end">
-              Logout
-            </Item>
+            <ItemGroup>
+              <Item key="/user">
+                <Link href="/user">
+                  <a>Dashboard</a>
+                </Link>
+              </Item>
+
+              <Item onClick={logout}>Logout</Item>
+            </ItemGroup>
           </SubMenu>
         </>
       )}
